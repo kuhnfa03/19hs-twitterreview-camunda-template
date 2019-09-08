@@ -6,8 +6,8 @@
 
   <!-- Grundangaben zum Maven-Projekt -->  
   <groupId>ch.zhaw.gpi</groupId>  
-  <artifactId>camunda-spring-boot-template</artifactId>  
-  <name>Camunda Spring Boot Template</name>  
+  <artifactId>19hs-twitterreview-musterloesung</artifactId>  
+  <name>2019 HS Twitter Review Musterlösung</name>  
   <version>1.0.0</version>  
   
   <!-- Konfiguration des Maven-Projekts -->  

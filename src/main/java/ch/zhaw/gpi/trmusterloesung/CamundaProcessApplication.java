@@ -1,4 +1,4 @@
-package ch.zhaw.gpi.csbtemplate;
+package ch.zhaw.gpi.trmusterloesung;
 
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;
 import org.springframework.boot.SpringApplication;
