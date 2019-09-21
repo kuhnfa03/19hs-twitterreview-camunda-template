@@ -1,4 +1,4 @@
-package ch.zhaw.gpi.trmusterloesung;
+package ch.zhaw.gpi.twitterreview;
 
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;
 import org.springframework.boot.SpringApplication;
