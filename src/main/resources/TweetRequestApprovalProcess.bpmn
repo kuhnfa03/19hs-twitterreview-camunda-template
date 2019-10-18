@@ -177,7 +177,12 @@
         <bpmn:flowNodeRef>Task_TweetAnfragePrufen1</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_TweetAnfrageEingereicht" name="Tweet-Anfrage eingereicht" camunda:asyncAfter="true">
+    <bpmn:startEvent id="StartEvent_TweetAnfrageEingereicht" name="Tweet-Anfrage eingereicht" camunda:asyncAfter="true" camunda:initiator="anfrageStellenderBenutzer">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tweetContent" label="Gewünschter Tweet" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_0f0qcdv</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0f0qcdv" sourceRef="StartEvent_TweetAnfrageEingereicht" targetRef="Task_BenutzerinformationenAuslesen" />
@@ -188,10 +193,6 @@
       <bpmn:outgoing>SequenceFlow_1t9dpba</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="SequenceFlow_0v414r7" sourceRef="ExclusiveGateway_0z4fveq" targetRef="Task_AufVerboteneWorterPrufen" />
-    <bpmn:task id="Task_TweetAnfrageUberarbeiten" name="Tweet-Anfrage überarbeiten">
-      <bpmn:incoming>SequenceFlow_ZuUberarbeiten1</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0rqrc7j</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1sldbsd">
       <bpmn:incoming>SequenceFlow_13xvt78</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_Abgelehnt</bpmn:incoming>
@@ -250,18 +251,50 @@
       <bpmn:incoming>SequenceFlow_1t9dpba</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0v414r7</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:scriptTask id="Task_AufVerboteneWorterPrufen" name="Auf verbotene Wörter prüfen" scriptFormat="JavaScript">
+    <bpmn:scriptTask id="Task_AufVerboteneWorterPrufen" name="Auf verbotene Wörter prüfen" camunda:asyncAfter="true" scriptFormat="JavaScript">
       <bpmn:incoming>SequenceFlow_0v414r7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_14scugo</bpmn:outgoing>
       <bpmn:script>tweetContent = execution.getVariable("tweetContent");
+
 var result = tweetContent.toLowerCase().indexOf("gpi");
+
 execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckRequired"));</bpmn:script>
     </bpmn:scriptTask>
-    <bpmn:scriptTask id="Task_TweetAnfragePrufen1" name="Tweet-Anfrage prüfen" scriptFormat="JavaScript">
+    <bpmn:userTask id="Task_TweetAnfragePrufen1" name="Tweet-Anfrage prüfen" camunda:asyncAfter="true" camunda:candidateGroups="komm">
+      <bpmn:documentation />
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tweetContent" label="Eingereichter Tweet" type="string">
+            <camunda:validation>
+              <camunda:constraint name="readonly" config="true" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="checkResult" label="Prüfergebnis" type="enum">
+            <camunda:value id="rejected" name="Abgelehnt" />
+            <camunda:value id="accepted" name="Genehmigt" />
+            <camunda:value id="revisable" name="Zu überarbeiten" />
+            <camunda:value id="manualCheckRequired" name="-" />
+          </camunda:formField>
+          <camunda:formField id="checkResultComment" label="Begründung" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_Ja</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_03q2iao</bpmn:outgoing>
-      <bpmn:script>execution.setVariable("checkResult", "accepted");</bpmn:script>
-    </bpmn:scriptTask>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_TweetAnfrageUberarbeiten" name="Tweet-Anfrage überarbeiten" camunda:assignee="${anfrageStellenderBenutzer}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tweetContent" label="Eingereichter Tweet" type="string" />
+          <camunda:formField id="checkResultComment" label="Begründung" type="string">
+            <camunda:validation>
+              <camunda:constraint name="readonly" config="true" />
+            </camunda:validation>
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_ZuUberarbeiten1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0rqrc7j</bpmn:outgoing>
+    </bpmn:userTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1rw4mjy">
@@ -519,9 +552,6 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
           <dc:Bounds x="1071" y="600" width="50" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Task_1v61ce3_di" bpmnElement="Task_TweetAnfrageUberarbeiten">
-        <dc:Bounds x="1093" y="445" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_11ueoy2_di" bpmnElement="SequenceFlow_ZuUberarbeiten1">
         <di:waypoint x="1029" y="593" />
         <di:waypoint x="1029" y="485" />
@@ -677,11 +707,14 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
         <di:waypoint x="261" y="1438" />
         <di:waypoint x="261" y="1356" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ScriptTask_1w56ai4_di" bpmnElement="Task_AufVerboteneWorterPrufen">
+      <bpmndi:BPMNShape id="ScriptTask_0zhmyd2_di" bpmnElement="Task_AufVerboteneWorterPrufen">
         <dc:Bounds x="566" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ScriptTask_0k40gqk_di" bpmnElement="Task_TweetAnfragePrufen1">
+      <bpmndi:BPMNShape id="UserTask_1ggdhvl_di" bpmnElement="Task_TweetAnfragePrufen1">
         <dc:Bounds x="780" y="796" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_18eo3hz_di" bpmnElement="Task_TweetAnfrageUberarbeiten">
+        <dc:Bounds x="1093" y="445" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
