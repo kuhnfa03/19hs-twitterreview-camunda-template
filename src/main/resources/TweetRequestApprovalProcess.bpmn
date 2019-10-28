@@ -162,7 +162,6 @@
         <bpmn:flowNodeRef>Task_TweetAnfrageUberarbeiten</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Automatisch" name="Automatisch">
-        <bpmn:flowNodeRef>Task_BenutzerinformationenAuslesen</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_1sldbsd</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_PrufErgebnis</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_022fxw2</bpmn:flowNodeRef>
@@ -172,6 +171,7 @@
         <bpmn:flowNodeRef>Task_TweetSenden</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_0z4fveq</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_AufVerboteneWorterPrufen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BenutzerinformationenAuslesen</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Kommabt" name="Komm.abt.">
         <bpmn:flowNodeRef>Task_TweetAnfragePrufen1</bpmn:flowNodeRef>
@@ -188,10 +188,6 @@
     <bpmn:sequenceFlow id="SequenceFlow_0f0qcdv" sourceRef="StartEvent_TweetAnfrageEingereicht" targetRef="Task_BenutzerinformationenAuslesen" />
     <bpmn:sequenceFlow id="SequenceFlow_1t9dpba" sourceRef="Task_BenutzerinformationenAuslesen" targetRef="ExclusiveGateway_0z4fveq" />
     <bpmn:sequenceFlow id="SequenceFlow_0rqrc7j" sourceRef="Task_TweetAnfrageUberarbeiten" targetRef="ExclusiveGateway_0z4fveq" />
-    <bpmn:task id="Task_BenutzerinformationenAuslesen" name="Benutzer-informationen auslesen">
-      <bpmn:incoming>SequenceFlow_0f0qcdv</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1t9dpba</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:sequenceFlow id="SequenceFlow_0v414r7" sourceRef="ExclusiveGateway_0z4fveq" targetRef="Task_AufVerboteneWorterPrufen" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1sldbsd">
       <bpmn:incoming>SequenceFlow_13xvt78</bpmn:incoming>
@@ -276,6 +272,7 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
             <camunda:value id="manualCheckRequired" name="-" />
           </camunda:formField>
           <camunda:formField id="checkResultComment" label="Begründung" type="string" />
+          <camunda:formField id="fullName" label="Antragsteller" type="string" />
         </camunda:formData>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_Ja</bpmn:incoming>
@@ -295,6 +292,10 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
       <bpmn:incoming>SequenceFlow_ZuUberarbeiten1</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0rqrc7j</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:serviceTask id="Task_BenutzerinformationenAuslesen" name="Benutzer-informationen auslesen" camunda:delegateExpression="${getUserInformationAdapter}">
+      <bpmn:incoming>SequenceFlow_0f0qcdv</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1t9dpba</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1rw4mjy">
@@ -469,9 +470,6 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
         <bpmndi:BPMNLabel>
           <dc:Bounds x="216" y="510" width="71" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_02nab0b_di" bpmnElement="Task_BenutzerinformationenAuslesen">
-        <dc:Bounds x="337" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0f0qcdv_di" bpmnElement="SequenceFlow_0f0qcdv">
         <di:waypoint x="269" y="485" />
@@ -715,6 +713,9 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_18eo3hz_di" bpmnElement="Task_TweetAnfrageUberarbeiten">
         <dc:Bounds x="1093" y="445" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_12hp9en_di" bpmnElement="Task_BenutzerinformationenAuslesen">
+        <dc:Bounds x="337" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
