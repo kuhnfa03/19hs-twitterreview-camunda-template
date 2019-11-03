@@ -170,8 +170,8 @@
         <bpmn:flowNodeRef>EndEvent_TweetAnfrageBehandelt</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_TweetSenden</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_0z4fveq</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AufVerboteneWorterPrufen</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_BenutzerinformationenAuslesen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AufVerboteneWorterPrufen</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Kommabt" name="Komm.abt.">
         <bpmn:flowNodeRef>Task_TweetAnfragePrufen1</bpmn:flowNodeRef>
@@ -247,15 +247,6 @@
       <bpmn:incoming>SequenceFlow_1t9dpba</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0v414r7</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:scriptTask id="Task_AufVerboteneWorterPrufen" name="Auf verbotene Wörter prüfen" camunda:asyncAfter="true" scriptFormat="JavaScript">
-      <bpmn:incoming>SequenceFlow_0v414r7</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_14scugo</bpmn:outgoing>
-      <bpmn:script>tweetContent = execution.getVariable("tweetContent");
-
-var result = tweetContent.toLowerCase().indexOf("gpi");
-
-execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckRequired"));</bpmn:script>
-    </bpmn:scriptTask>
     <bpmn:userTask id="Task_TweetAnfragePrufen1" name="Tweet-Anfrage prüfen" camunda:asyncAfter="true" camunda:candidateGroups="komm">
       <bpmn:documentation />
       <bpmn:extensionElements>
@@ -272,7 +263,11 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
             <camunda:value id="manualCheckRequired" name="-" />
           </camunda:formField>
           <camunda:formField id="checkResultComment" label="Begründung" type="string" />
-          <camunda:formField id="fullName" label="Antragsteller" type="string" />
+          <camunda:formField id="fullName" label="Antragsteller" type="string">
+            <camunda:validation>
+              <camunda:constraint name="readonly" />
+            </camunda:validation>
+          </camunda:formField>
         </camunda:formData>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_Ja</bpmn:incoming>
@@ -296,6 +291,17 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
       <bpmn:incoming>SequenceFlow_0f0qcdv</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1t9dpba</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:businessRuleTask id="Task_AufVerboteneWorterPrufen" name="Auf verbotene Wörter prüfen" camunda:asyncAfter="true" camunda:decisionRef="forbiddenWordsDecision">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="checkResult">${decisionResult.getSingleResult().result}</camunda:outputParameter>
+          <camunda:outputParameter name="checkResultComment">${decisionResult.getSingleResult().comment}
+</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0v414r7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_14scugo</bpmn:outgoing>
+    </bpmn:businessRuleTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1rw4mjy">
@@ -705,17 +711,17 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
         <di:waypoint x="261" y="1438" />
         <di:waypoint x="261" y="1356" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ScriptTask_0zhmyd2_di" bpmnElement="Task_AufVerboteneWorterPrufen">
-        <dc:Bounds x="566" y="578" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1ggdhvl_di" bpmnElement="Task_TweetAnfragePrufen1">
         <dc:Bounds x="780" y="796" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_18eo3hz_di" bpmnElement="Task_TweetAnfrageUberarbeiten">
         <dc:Bounds x="1093" y="445" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_12hp9en_di" bpmnElement="Task_BenutzerinformationenAuslesen">
+      <bpmndi:BPMNShape id="ServiceTask_1quaqaj_di" bpmnElement="Task_BenutzerinformationenAuslesen">
         <dc:Bounds x="337" y="578" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BusinessRuleTask_19tkhry_di" bpmnElement="Task_AufVerboteneWorterPrufen">
+        <dc:Bounds x="566" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
