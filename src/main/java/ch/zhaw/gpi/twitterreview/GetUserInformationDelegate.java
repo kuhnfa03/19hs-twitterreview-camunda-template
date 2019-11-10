@@ -1,12 +1,11 @@
 package ch.zhaw.gpi.twitterreview;
 
-import java.util.Optional;
-
 import javax.inject.Named;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * GetUserInformationDelegate
@@ -14,19 +13,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Named("getUserInformationAdapter")
 public class GetUserInformationDelegate implements JavaDelegate {
 
-    @Autowired
-    private UserRepository userRepository;
-
     @Override
     public void execute(DelegateExecution execution) throws Exception {
         String userName = (String) execution.getVariable("anfrageStellenderBenutzer");
 
-        Optional<UserEntity> user = userRepository.findById(userName);
+        RestTemplate restTemplate = new RestTemplate();
 
         String fullName;
-        if(user.isPresent()){
-            fullName = user.get().getFirstName() + " " + user.get().getOfficialName();
-        } else {
+        try {
+            User user = restTemplate.getForObject("http://localhost:8070/userapi/v1/users/{userName}", User.class, userName);
+            
+            fullName = user.getFirstName() + " " + user.getOfficialName();
+        } catch (HttpClientErrorException e) {
             fullName = "Mr. X";
         }
 
