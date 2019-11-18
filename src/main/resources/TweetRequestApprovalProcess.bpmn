@@ -160,21 +160,24 @@
       <bpmn:lane id="Lane_Mitarbeiter" name="Mitarbeiter">
         <bpmn:flowNodeRef>StartEvent_TweetAnfrageEingereicht</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_TweetAnfrageUberarbeiten</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>BoundaryEvent_1xjv7so</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Automatisch" name="Automatisch">
         <bpmn:flowNodeRef>ExclusiveGateway_1sldbsd</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_PrufErgebnis</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_022fxw2</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_ManuellePrufungErforderlich</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_StatusMitteilen</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_TweetAnfrageBehandelt</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_TweetSenden</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_0z4fveq</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_BenutzerinformationenAuslesen</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_AufVerboteneWorterPrufen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TweetSenden</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_0npgypz</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StatusMitteilen</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Kommabt" name="Komm.abt.">
         <bpmn:flowNodeRef>Task_TweetAnfragePrufen1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>BoundaryEvent_1t0qoyz</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:startEvent id="StartEvent_TweetAnfrageEingereicht" name="Tweet-Anfrage eingereicht" camunda:asyncAfter="true" camunda:initiator="anfrageStellenderBenutzer">
@@ -210,17 +213,9 @@
       <bpmn:outgoing>SequenceFlow_Ja</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_Nein</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:task id="Task_StatusMitteilen" name="Definitiver Entscheid mitteilen">
-      <bpmn:incoming>SequenceFlow_0nfldsz</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_00bdf3s</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:endEvent id="EndEvent_TweetAnfrageBehandelt" name="Tweet-Anfrage behandelt">
       <bpmn:incoming>SequenceFlow_00bdf3s</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:task id="Task_TweetSenden" name="Tweet senden">
-      <bpmn:incoming>SequenceFlow_Genehmigt</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_13xvt78</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:sequenceFlow id="SequenceFlow_ZuUberarbeiten1" name="Zu überarbeiten" sourceRef="ExclusiveGateway_PrufErgebnis" targetRef="Task_TweetAnfrageUberarbeiten">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${checkResult == 'revisable'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -295,13 +290,42 @@
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:outputParameter name="checkResult">${decisionResult.getSingleResult().result}</camunda:outputParameter>
-          <camunda:outputParameter name="checkResultComment">${decisionResult.getSingleResult().comment}
-</camunda:outputParameter>
+          <camunda:outputParameter name="checkResultComment">${decisionResult.getSingleResult().comment}</camunda:outputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0v414r7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_14scugo</bpmn:outgoing>
     </bpmn:businessRuleTask>
+    <bpmn:serviceTask id="Task_TweetSenden" name="Tweet senden" camunda:delegateExpression="${sendTweetAdapter}">
+      <bpmn:incoming>SequenceFlow_Genehmigt</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_13xvt78</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="BoundaryEvent_1t0qoyz" name="3 Tage abgelaufen" cancelActivity="false" attachedToRef="Task_TweetAnfragePrufen1">
+      <bpmn:outgoing>SequenceFlow_0hz57j4</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="BoundaryEvent_1xjv7so" name="3 Tage abgelaufen" cancelActivity="false" attachedToRef="Task_TweetAnfrageUberarbeiten">
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0hz57j4" sourceRef="BoundaryEvent_1t0qoyz" targetRef="EndEvent_0npgypz" />
+    <bpmn:endEvent id="EndEvent_0npgypz" name="Erinnerung gesendet">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">kommabt@firma.ch</camunda:inputParameter>
+          <camunda:inputParameter name="subject">Erinnerung: Tweet-Anfrage prüfen</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0hz57j4</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${sendReminderAdapter}" />
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_StatusMitteilen" name="Definitiver Entscheid mitteilen" camunda:delegateExpression="${sendDecisionAdapter}">
+      <bpmn:incoming>SequenceFlow_0nfldsz</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_00bdf3s</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1rw4mjy">
@@ -530,9 +554,6 @@
         <di:waypoint x="967" y="618" />
         <di:waypoint x="1004" y="618" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Task_0fpxd21_di" bpmnElement="Task_TweetSenden">
-        <dc:Bounds x="1093" y="669" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_097p4yb_di" bpmnElement="SequenceFlow_Genehmigt">
         <di:waypoint x="1029" y="643" />
         <di:waypoint x="1029" y="709" />
@@ -574,9 +595,6 @@
         <di:waypoint x="501" y="423" />
         <di:waypoint x="501" y="593" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Task_0ik1de1_di" bpmnElement="Task_StatusMitteilen">
-        <dc:Bounds x="1333" y="578" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0nfldsz_di" bpmnElement="SequenceFlow_0nfldsz">
         <di:waypoint x="1288" y="618" />
         <di:waypoint x="1333" y="618" />
@@ -722,6 +740,34 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BusinessRuleTask_19tkhry_di" bpmnElement="Task_AufVerboteneWorterPrufen">
         <dc:Bounds x="566" y="578" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0d2df1o_di" bpmnElement="Task_TweetSenden">
+        <dc:Bounds x="1093" y="669" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_18mvwps_di" bpmnElement="BoundaryEvent_1t0qoyz">
+        <dc:Bounds x="837" y="778" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="878" y="766" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_1azwddq_di" bpmnElement="BoundaryEvent_1xjv7so">
+        <dc:Bounds x="1152" y="507" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1096" y="536" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0hz57j4_di" bpmnElement="SequenceFlow_0hz57j4">
+        <di:waypoint x="855" y="778" />
+        <di:waypoint x="855" y="713" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_0ebfcby_di" bpmnElement="EndEvent_0npgypz">
+        <dc:Bounds x="837" y="677" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="828" y="647" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_1dlaqm8_di" bpmnElement="Task_StatusMitteilen">
+        <dc:Bounds x="1333" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
