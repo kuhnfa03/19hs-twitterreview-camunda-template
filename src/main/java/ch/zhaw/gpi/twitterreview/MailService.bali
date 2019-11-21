@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * MailService
  */
-@Component
+@Service
 public class MailService {
 
     @Autowired
@@ -21,8 +21,8 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String userName;
 
-    public void sendMail(String to, String subject, String body){
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
+    private void sendMail(String to, String subject, String body){
+        SimpleMailMessage mailMessage;
 
         if(!overrideAddress.isEmpty()){
             to = overrideAddress;

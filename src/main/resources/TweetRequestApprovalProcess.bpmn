@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1x6sh6x" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1x6sh6x" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.4.1">
   <bpmn:collaboration id="Collaboration_1rw4mjy">
     <bpmn:participant id="Participant_Mitarbeiter" name="Mitarbeiter" processRef="Process_1qparw9" />
     <bpmn:participant id="Participant_Kommunikationsabteilung" name="Kommunikationsabteilung" processRef="Process_08fic1u" />
@@ -160,7 +160,6 @@
       <bpmn:lane id="Lane_Mitarbeiter" name="Mitarbeiter">
         <bpmn:flowNodeRef>StartEvent_TweetAnfrageEingereicht</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_TweetAnfrageUberarbeiten</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>BoundaryEvent_1xjv7so</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Automatisch" name="Automatisch">
         <bpmn:flowNodeRef>ExclusiveGateway_1sldbsd</bpmn:flowNodeRef>
@@ -172,12 +171,10 @@
         <bpmn:flowNodeRef>Task_BenutzerinformationenAuslesen</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_AufVerboteneWorterPrufen</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_TweetSenden</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_0npgypz</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_StatusMitteilen</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Kommabt" name="Komm.abt.">
         <bpmn:flowNodeRef>Task_TweetAnfragePrufen1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>BoundaryEvent_1t0qoyz</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:startEvent id="StartEvent_TweetAnfrageEingereicht" name="Tweet-Anfrage eingereicht" camunda:asyncAfter="true" camunda:initiator="anfrageStellenderBenutzer">
@@ -296,36 +293,14 @@
       <bpmn:incoming>SequenceFlow_0v414r7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_14scugo</bpmn:outgoing>
     </bpmn:businessRuleTask>
-    <bpmn:serviceTask id="Task_TweetSenden" name="Tweet senden" camunda:delegateExpression="${sendTweetAdapter}">
+    <bpmn:task id="Task_TweetSenden" name="Tweet senden">
       <bpmn:incoming>SequenceFlow_Genehmigt</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_13xvt78</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:boundaryEvent id="BoundaryEvent_1t0qoyz" name="3 Tage abgelaufen" cancelActivity="false" attachedToRef="Task_TweetAnfragePrufen1">
-      <bpmn:outgoing>SequenceFlow_0hz57j4</bpmn:outgoing>
-      <bpmn:timerEventDefinition>
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:boundaryEvent>
-    <bpmn:boundaryEvent id="BoundaryEvent_1xjv7so" name="3 Tage abgelaufen" cancelActivity="false" attachedToRef="Task_TweetAnfrageUberarbeiten">
-      <bpmn:timerEventDefinition>
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:boundaryEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0hz57j4" sourceRef="BoundaryEvent_1t0qoyz" targetRef="EndEvent_0npgypz" />
-    <bpmn:endEvent id="EndEvent_0npgypz" name="Erinnerung gesendet">
-      <bpmn:extensionElements>
-        <camunda:inputOutput>
-          <camunda:inputParameter name="to">kommabt@firma.ch</camunda:inputParameter>
-          <camunda:inputParameter name="subject">Erinnerung: Tweet-Anfrage prüfen</camunda:inputParameter>
-        </camunda:inputOutput>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0hz57j4</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${sendReminderAdapter}" />
-    </bpmn:endEvent>
-    <bpmn:serviceTask id="Task_StatusMitteilen" name="Definitiver Entscheid mitteilen" camunda:delegateExpression="${sendDecisionAdapter}">
+    </bpmn:task>
+    <bpmn:task id="Task_StatusMitteilen" name="Definitiver Entscheid mitteilen">
       <bpmn:incoming>SequenceFlow_0nfldsz</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_00bdf3s</bpmn:outgoing>
-    </bpmn:serviceTask>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1rw4mjy">
@@ -645,8 +620,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="MessageFlow_1fvzpfs_di" bpmnElement="MessageFlow_1fvzpfs">
         <di:waypoint x="1383" y="578" />
-        <di:waypoint x="1383" y="38" />
-        <di:waypoint x="632" y="38" />
+        <di:waypoint x="1383" y="40" />
+        <di:waypoint x="632" y="40" />
         <di:waypoint x="632" y="118" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0v414r7_di" bpmnElement="SequenceFlow_0v414r7">
@@ -701,8 +676,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="MessageFlow_0yu46lx_di" bpmnElement="MessageFlow_0yu46lx">
         <di:waypoint x="1383" y="658" />
-        <di:waypoint x="1383" y="1425" />
-        <di:waypoint x="770" y="1425" />
+        <di:waypoint x="1383" y="1430" />
+        <di:waypoint x="770" y="1430" />
         <di:waypoint x="770" y="1272" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_1nrkw4z_di" bpmnElement="StartEvent_0m9hrdm">
@@ -725,8 +700,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="MessageFlow_06u7bo7_di" bpmnElement="MessageFlow_06u7bo7">
         <di:waypoint x="1397" y="658" />
-        <di:waypoint x="1397" y="1438" />
-        <di:waypoint x="261" y="1438" />
+        <di:waypoint x="1397" y="1440" />
+        <di:waypoint x="261" y="1440" />
         <di:waypoint x="261" y="1356" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_1ggdhvl_di" bpmnElement="Task_TweetAnfragePrufen1">
@@ -741,32 +716,10 @@
       <bpmndi:BPMNShape id="BusinessRuleTask_19tkhry_di" bpmnElement="Task_AufVerboteneWorterPrufen">
         <dc:Bounds x="566" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_0d2df1o_di" bpmnElement="Task_TweetSenden">
+      <bpmndi:BPMNShape id="Task_1m0ogr4_di" bpmnElement="Task_TweetSenden">
         <dc:Bounds x="1093" y="669" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BoundaryEvent_18mvwps_di" bpmnElement="BoundaryEvent_1t0qoyz">
-        <dc:Bounds x="837" y="778" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="878" y="766" width="55" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BoundaryEvent_1azwddq_di" bpmnElement="BoundaryEvent_1xjv7so">
-        <dc:Bounds x="1152" y="507" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1096" y="536" width="55" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0hz57j4_di" bpmnElement="SequenceFlow_0hz57j4">
-        <di:waypoint x="855" y="778" />
-        <di:waypoint x="855" y="713" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_0ebfcby_di" bpmnElement="EndEvent_0npgypz">
-        <dc:Bounds x="837" y="677" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="828" y="647" width="54" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_1dlaqm8_di" bpmnElement="Task_StatusMitteilen">
+      <bpmndi:BPMNShape id="Task_1lom0i8_di" bpmnElement="Task_StatusMitteilen">
         <dc:Bounds x="1333" y="578" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
