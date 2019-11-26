@@ -14,6 +14,11 @@ Examplerepository ZHAW for Twitterreview process. Use this Repo for future refer
 - `ForbiddenWords.dmn` contains decision table
 - `TweetRequestApprovalProcess` contains main Process of Tweet Requests
 #### Sync Repo with Upstream
+Add upstream Repo if Necessary
+```
+$ git remote add upstream git@github.com:zhaw-gpi/19hs-twitterreview-musterloesung.git
+```
+Sync with upstream Repo
 ```
 $ git fetch upstream
 $ git checkout master
