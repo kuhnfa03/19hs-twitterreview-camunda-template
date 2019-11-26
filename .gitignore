@@ -33,3 +33,6 @@ hs_err_pid*
 
 twitter4j.properties
 mail.properties
+.DS_Store
+.idea
+*.iml
